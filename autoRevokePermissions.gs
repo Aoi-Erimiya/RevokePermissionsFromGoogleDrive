@@ -1,14 +1,21 @@
 /**
- *  autoRevokePermissions.js
+ *  autoRevokePermissions.gs
  *
  *  Copyright (c) 2020 Hiroaki Wada(Gentle)
  *
  *  This software is released under the MIT License.
  *  http://opensource.org/licenses/mit-license.php
+ * 
+ *  see https://developers.google.com/apps-script/reference/drive/drive-app
  */
 
-
-class DriveItrTuple {
+/**
+ * FolderIteratorとFileIteratorを保持するクラス
+ * 
+ * @param {FileIterator} FileIterator
+ * @param {FolderIterator} FolderIterator
+ */
+class DriveIteratorTuple {
     constructor(fileIterator, folderIterator) {
       this.fileIterator = fileIterator;
       this.folderIterator = folderIterator;
@@ -18,40 +25,46 @@ class DriveItrTuple {
     folderIterator() { return this.folderIterator; }
 }
 
-function getDriveItrTupleByDir(folder){
-    return new DriveItrTuple(folder.getFiles(), folder.getFolders());
+/**
+ * FolderIteratorを取得する
+ *
+ * @param {Folder} Folder
+ * @return {DriveIteratorTuple} DriveIteratorTuple
+ */
+function getDriveIteratorTupleByFolder(folder){
+    return new DriveIteratorTuple(folder.getFiles(), folder.getFolders());
 }
 
 /**
- * フォルダ配下のDriveItrTupleリストを取得する
+ * フォルダ配下のDriveIteratorTupleリストを取得する
  *
- * @param {string} FolderIterator
+ * @param {FolderIterator} FolderIterator
  */
-function getDriveItrTuplesByFolderIterator(folderIterator){
-    let driveItrTuples = [];
+function getDriveIteratorTuplesByFolderIterator(folderIterator){
+    const driveIteratorTuples = [];
   
     while(folderIterator.hasNext()){
         var folder = folderIterator.next();
-        driveItrTuples.push(getDriveItrTupleByDir(folder));
+        driveIteratorTuples.push(getDriveIteratorTupleByFolder(folder));
     }
-    return driveItrTuples;
+    return driveIteratorTuples;
 }
 
 /**
  * ファイル毎に設定されたアクセス権限を全削除する
  *
- * @param {string} FileItrator
+ * @param {FileIteratorator} FileIteratorator
  */
-function revokePermissionsByFileItr(fileIterator){
+function revokePermissionsByFileIterator(fileIterator){
     while(fileIterator.hasNext()){
-        let file = fileIterator.next();
-        let users = file.getEditors().concat(file.getViewers());
-        let distinctUsers = users.filter(function (x, i, self) {
+        const file = fileIterator.next();
+        const users = file.getEditors().concat(file.getViewers());
+        const distinctUsers = users.filter(function (x, i, self) {
             return self.indexOf(x) === i;
         });
         Logger.log('removed File:' + file.getName() + '/users:' + distinctUsers.length);
         
-        for(let user of distinctUsers){
+        for(const user of distinctUsers){
             driveFile.revokePermissions(user);
         }
     }
@@ -60,13 +73,13 @@ function revokePermissionsByFileItr(fileIterator){
 /**
  * ディレクトリ配下のファイルのアクセス権限削除(再帰)
  *
- * @param {string} DriveItrTuple
+ * @param {DriveIteratorTuple} 削除対象のDriveIteratorTuple
  */
-function revokePermissionsByDriveItrTuple(driveItrTuple){
-    revokePermissionsByFileItr(driveItrTuple.fileIterator);
-    const tuples = getDriveItrTuplesByFolderIterator(driveItrTuple.folderIterator);
-    for(let tuple of tuples){
-        revokePermissionsByDriveItrTuple(tuple);
+function revokePermissionsByDriveIteratorTuple(driveIteratorTuple){
+    revokePermissionsByFileIterator(driveIteratorTuple.fileIterator);
+    const tuples = getDriveIteratorTuplesByFolderIterator(driveIteratorTuple.folderIterator);
+    for(const tuple of tuples){
+        revokePermissionsByDriveIteratorTuple(tuple);
     }
 }
 
@@ -75,9 +88,9 @@ function revokePermissionsByDriveItrTuple(driveItrTuple){
  *
  * @param {string} GoogleDriveディレクトリID
  */
-function revokeByDirId(folderId){
-    let rootDir = DriveApp.getFolderById(folderId);
-    let rootTuple = getDriveItrTupleByDir(rootDir);
+function revokeByFolderId(folderId){
+    const rootFolder = DriveApp.getFolderById(folderId);
+    const rootTuple = getDriveIteratorTupleByFolder(rootFolder);
 
-    revokePermissionsByDriveItrTuple(rootTuple);
+    revokePermissionsByDriveIteratorTuple(rootTuple);
 }
