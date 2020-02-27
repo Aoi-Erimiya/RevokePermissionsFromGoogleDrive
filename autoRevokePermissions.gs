@@ -12,8 +12,8 @@
 /**
  * FolderIteratorとFileIteratorを保持するクラス
  * 
- * @param {FileIterator} FileIterator
- * @param {FolderIterator} FolderIterator
+ * @param {fileIterator} FileIterator
+ * @param {folderIterator} FolderIterator
  */
 class DriveIteratorTuple {
     constructor(fileIterator, folderIterator) {
@@ -26,10 +26,10 @@ class DriveIteratorTuple {
 }
 
 /**
- * FolderIteratorを取得する
+ * 指定FolderのdriveIteratorTupleを取得する
  *
- * @param {Folder} Folder
- * @return {DriveIteratorTuple} DriveIteratorTuple
+ * @param {folder} Folder
+ * @return {driveIteratorTuple} DriveIteratorTuple
  */
 function getDriveIteratorTupleByFolder(folder){
     return new DriveIteratorTuple(folder.getFiles(), folder.getFolders());
@@ -38,7 +38,8 @@ function getDriveIteratorTupleByFolder(folder){
 /**
  * フォルダ配下のDriveIteratorTupleリストを取得する
  *
- * @param {FolderIterator} FolderIterator
+ * @param {folderIterator} FolderIterator
+ * @return {driveIteratorTuple[]} DriveIteratorTupleList
  */
 function getDriveIteratorTuplesByFolderIterator(folderIterator){
     const driveIteratorTuples = [];
@@ -53,7 +54,7 @@ function getDriveIteratorTuplesByFolderIterator(folderIterator){
 /**
  * ファイル毎に設定されたアクセス権限を全削除する
  *
- * @param {FileIteratorator} FileIteratorator
+ * @param {fileIteratorator} FileIteratorator
  */
 function revokePermissionsByFileIterator(fileIterator){
     while(fileIterator.hasNext()){
@@ -73,7 +74,7 @@ function revokePermissionsByFileIterator(fileIterator){
 /**
  * ディレクトリ配下のファイルのアクセス権限削除(再帰)
  *
- * @param {DriveIteratorTuple} 削除対象のDriveIteratorTuple
+ * @param {driveIteratorTuple} 削除対象のDriveIteratorTuple
  */
 function revokePermissionsByDriveIteratorTuple(driveIteratorTuple){
     revokePermissionsByFileIterator(driveIteratorTuple.fileIterator);
